@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect the Terminals</title>
+</head>
+
+<style>
+    body {
+        background-color: #176a4e;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    #disclaimer {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 18px;
+        color: white;
+    }
+
+    #game-container {
+        display: none;
+    }
+
+    #speed-slider {
+        width: 100px;
+    }
+</style>
+
+<body>
+
+    <div id="disclaimer">
+        <!-- Slider pro nastavení rychlosti -->
+        <p id="show-speed" style="font-size: 30px;"></p>
+        <button style="width: 200px; height: 50px;" onclick="startGame()">Continue</button>
+
+    </div>
+
+    <div id="game-container">
+        <canvas id="game"></canvas>
+    </div>
+
+    <script>
+        let speed = 10;
+        let Line = [{ x: 30, y: 228 }];
+        let direction = 'right';
+        let lineWidth = 10;
+        let canPressKey = true;
+        let isGameStarted = false;
+        let isGameOver = false;
+
+        // Získání hodnoty z predesle minihry pro nastaveni rychlosti signalu
+        const urlParams = new URLSearchParams(window.location.search);
+        // Inicializace herních proměnných a plátna
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext("2d");
+        const p = document.getElementById('show-speed').innerHTML = "Connect the two terminals for the password <br> Your signal is " + parseInt(urlParams.get('speed')) + " * slower based on your score"; 
+        speed = (speed / parseInt(urlParams.get('speed')));
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+        let h = window.innerHeight;
+        let w = window.innerWidth;
+        
+
+        // Překážky
+            const obstacles = [
+                { x: 0, y: 200, width: 30, height: 56 },          // (Start)
+                { x: w - 250, y: h - 30, width: 56, height: 30 }, // (Cíl)
+                { x: 0, y: 600, width: 150, height: 90 },      // Zelený obdélník
+                { x: 90, y: 400, width: 150, height: 120 },      // Zelený obdélník
+                { x: 150, y: h - 150, width: 300, height: 150 },
+                { x: 240, y: 0, width: 1000, height: 120 },
+                { x: 240, y: 120, width: 200, height: 420 },
+                { x: 240, y: 540, width: 350, height: 150 },
+                { x: 540, y: 690, width: 50, height: 100 },
+                { x: 600, y: 120, width: 100, height: 150 },
+                { x: 990, y: 120, width: 120, height: 70 },
+                { x: 520, y: 380, width: 250, height: 100 },
+                { x: 590, y: 540, width: 600, height: 120 },
+                { x: 700, y: h - 120, width: 600, height: 120 },
+                { x: 870, y: 220, width: 70, height: 160 },
+                { x: 940, y: 300, width: 100, height: 80 },  //14
+                { x: 890, y: 480, width: 440, height: 60 },
+                { x: 1110, y: 300, width: 600, height: 100 },
+                { x: 1360, y: 100, width: 200, height: 200 },
+                { x: 1690, y: 0, width: 60, height: 100 },
+                { x: w - 60, y: 200, width: 60, height: 100 },
+                { x: 1190, y: 540, width: 140, height: 200 },//18
+                { x: 1480, y: h - 450, width: 140, height: 450 },
+                { x: 1620, y: 400, width: 140, height: 200 },
+                { x: w - 80, y: 600, width: 80, height: 200 },
+            ];
+
+        function drawLine() {
+            // Vykreslení signalu a překážek na plátno
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < Line.length; i++) {
+                ctx.fillStyle = "black"; // Barva signalu
+                ctx.fillRect(Line[i].x - lineWidth / 2, Line[i].y - lineWidth / 2, lineWidth, lineWidth);
+            }
+
+            for (let i = 0; i < obstacles.length; i++) {
+                // Barvy překážek podle jejich typu
+                if (i === 0) {
+                    ctx.fillStyle = "gray"; // Start (šedá)
+                } else if (i === obstacles.length - 24) {
+                    ctx.fillStyle = "red"; // Cíl (červená)
+                } else {
+                    ctx.fillStyle = "#0a4934"; // Ostatní obdélníky (zelená)
+                }
+                //debugctx.font = "30px Georgia";
+                //debug ctx.textAlign = "center";
+                //debugctx.textBaseline = "middle";
+                ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+                //debug
+                ctx.strokeRect(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+                //debugctx.fillStyle = "#000";
+                //debugctx.fillText(i - 1, obstacles[i].x + ((obstacles[i].width) / 2), obstacles[i].y + ((obstacles[i].height) / 2));
+            }
+        }
+
+        function moveLine() {
+            // Logika pohybu signalu a detekce kolizí
+            if (isGameOver) {
+                return;
+            }
+
+            let head = { x: Line[0].x, y: Line[0].y };
+
+            switch (direction) {
+                case 'up':
+                    head.y -= speed;
+                    break;
+                case 'down':
+                    head.y += speed;
+                    break;
+                case 'left':
+                    head.x -= speed;
+                    break;
+                case 'right':
+                    head.x += speed;
+                    break;
+            }
+
+            // Kontrola kolize sám se sebou
+            for (let i = 1; i < Line.length; i++) {
+                if (head.x === Line[i].x && head.y === Line[i].y) {
+                    alert("Game Over! You shorted the signal.");
+                    window.location.href = 'speed.html';
+                }
+            }
+            
+            // Kontrola kolize s překážkami
+            for (let i = 0; i < obstacles.length; i++) {
+                if (
+                    head.x < obstacles[i].x + obstacles[i].width &&
+                    head.x + lineWidth > obstacles[i].x &&
+                    head.y < obstacles[i].y + obstacles[i].height &&
+                    head.y + lineWidth > obstacles[i].y
+                ) {
+                    if (i === obstacles.length - 24) {
+                        // signál dosáhl cíle,
+                        alert("Congratilation!! You connected the signal");
+                        isGameStarted = false;
+                        window.location.href = 'speed.html';
+                    } else {
+                        // signál narazil do překážky, konec hry
+                        isGameOver = true;
+                        alert("Game Over! You collided with an obstacle.");
+                        window.location.href = 'speed.html';
+                    }
+                }
+            }
+             if (head.x < 0 || head.x > canvas.width || head.y < 0 || head.y > canvas.height) {
+                // signál narazil do okraje okna, konec hry
+                isGameOver = true;
+                alert("Game Over! You corrupted the signal");
+                window.location.href = 'speed.html';
+            }
+
+            Line.unshift(head);
+        }
+
+        function startGame() {
+                // Skrytí úvodního textu a zobrazení samotné hry
+                if (!isGameStarted) {
+                    document.getElementById('disclaimer').style.display = 'none';
+                    document.getElementById('game-container').style.display = 'block';
+                    isGameStarted = true;
+                }
+        }
+
+        setInterval(function () {
+            // Pravidelné vykreslování signálu každých 20ms
+            if(isGameStarted) {
+                drawLine();
+                moveLine();
+            }
+        }, 20);
+
+        window.addEventListener("keydown", checkKeyPressed, false);
+
+        function checkKeyPressed(evt) {
+            // Ovládání směru signalu klávesami W, A, S, D
+            if (canPressKey && !isGameOver) {
+                switch (evt.keyCode) {
+                    case 87: // W
+                        if (direction !== 'down') {
+                            direction = 'up';
+                        }
+                        break;
+                    case 65: // A
+                        if (direction !== 'right') {
+                            direction = 'left';
+                        }
+                        break;
+                    case 83: // S
+                        if (direction !== 'up') {
+                            direction = 'down';
+                        }
+                        break;
+                    case 68: // D
+                        if (direction !== 'left') {
+                            direction = 'right';
+                        }
+                        break;
+                }
+
+                canPressKey = false;
+                keyPressSpeed = (400 / speed);
+                // Delay mezi stisknutím tlačítek který se mění na zaklade bodu z predesle minihry
+                setTimeout(() => {
+                    canPressKey = true;
+                }, keyPressSpeed);
+            }
+        }
+    </script>
+</body>
+
+</html>

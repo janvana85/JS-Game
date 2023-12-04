@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Speed Counter</title>
+</head>
+
+<style>
+    body{
+        background-color: #176a4e;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    #ball {
+        background-color: yellowgreen;
+        aspect-ratio: 1/1;
+        width: 50px;
+        border-radius: 50%;
+        position: absolute;
+    }
+</style>
+
+<body>
+
+    <div id="ball"></div>
+
+    <script>
+        let body = 0;
+        let size = 50;
+        ball = document.getElementById("ball");
+
+        w_w = window.innerWidth - size;
+        w_h = window.innerHeight - size;
+
+        function randomInt(min, max) { // min and max included
+            return Math.floor(Math.random() * (max - min + 1) + min)
+        }
+
+        ball.addEventListener("mousedown", (e) => {
+            body++;
+        })
+
+        function Game() {
+
+            ball_x = randomInt(0, (w_w));
+            ball_y = randomInt(0, (w_h));
+
+            ball.style.left = ball_x + "px";
+            ball.style.top = ball_y + "px";
+
+            ball.style.width = size + "px";
+            size = size - 5;
+
+            
+        }
+        setTimeout(StopFunction, 5000);
+
+        setInterval(Game, 1000);
+
+        function StopFunction() {
+            clearInterval(Game);
+            size = 50;
+            if(body == 0){
+                body = 1;
+            }
+            window.location.href = 'gta_minigame.html?speed=' + body;
+            body = 0;
+            setTimeout(StopFunction, 6000);
+        }
+    </script>
+</body>
+
+</html>
