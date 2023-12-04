@@ -132,7 +132,7 @@
             for (let i = 1; i < Line.length; i++) {
                 if (head.x === Line[i].x && head.y === Line[i].y) {
                     alert("Game Over! You corrupted the signal.");
-                    window.location.href = 'index.html';
+                    window.location.href = 'speed.html';
                 }
             }
             
@@ -149,16 +149,22 @@
                 ) {
                     if (i === obstacles.length - 6) {
                         // signál dosáhl cíle,
-                        alert("Congratilation!! You cracked the signal");
+                        alert("Congratilation!! You corrupted the signal");
                         isGameStarted = false;
-                        window.location.href = 'index.html';
+                        window.location.href = 'speed.html';
                     } else {
                         // signál narazil do překážky, konec hry
                         isGameOver = true;
                         alert("Game Over! You collided with an obstacle.");
-                        window.location.href = 'index.html';
+                        window.location.href = 'speed.html';
                     }
                 }
+            }
+             if (head.x < 0 || head.x > canvas.width || head.y < 0 || head.y > canvas.height) {
+                // signál narazil do okraje okna, konec hry
+                isGameOver = true;
+                alert("Game Over! You corrupted the signal");
+                window.location.href = 'speed.html';
             }
 
             Line.unshift(head);
