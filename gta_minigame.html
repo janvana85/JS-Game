@@ -155,7 +155,7 @@
             for (let i = 1; i < Line.length; i++) {
                 if (head.x === Line[i].x && head.y === Line[i].y) {
                     alert("Game Over! You shorted the signal.");
-                    window.location.href = 'speed.html';
+                    window.location.href = 'index.html';
                 }
             }
             
@@ -171,12 +171,12 @@
                         // signál dosáhl cíle,
                         alert("Congratilation!! You connected the signal");
                         isGameStarted = false;
-                        window.location.href = 'speed.html';
+                        window.location.href = 'index.html';
                     } else {
                         // signál narazil do překážky, konec hry
                         isGameOver = true;
                         alert("Game Over! You collided with an obstacle.");
-                        window.location.href = 'speed.html';
+                        window.location.href = 'index.html';
                     }
                 }
             }
@@ -184,7 +184,7 @@
                 // signál narazil do okraje okna, konec hry
                 isGameOver = true;
                 alert("Game Over! You corrupted the signal");
-                window.location.href = 'speed.html';
+                window.location.href = 'index.html';
             }
 
             Line.unshift(head);
